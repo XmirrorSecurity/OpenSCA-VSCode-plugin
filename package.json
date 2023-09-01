@@ -1,0 +1,209 @@
+{
+  "name": "opensca",
+  "displayName": "OpenSCA Xcheck",
+  "publisher": "Xmirror",
+  "description": "OpenSCA Xcheck",
+  "version": "1.0.0",
+  "icon": "resources/xmirror_logo.png",
+  "homepage": "https://opensca.xmirror.cn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XmirrorSecurity"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "OpenSCA",
+      "properties": {
+        "opensca.usingRemoteDataSource": {
+          "order": 1,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否使用远程数据源",
+          "scope": "window"
+        },
+        "opensca.remoteUrl": {
+          "order": 2,
+          "type": "string",
+          "default": "https://opensca.xmirror.cn",
+          "description": "OpenSCA 平台URL，默认为：https://opensca.xmirror.cn",
+          "scope": "window"
+        },
+        "opensca.tokenStorage": {
+          "order": 3,
+          "type": "string",
+          "enum": [
+            "Always use VS Code's secret storage"
+          ],
+          "default": "Always use VS Code's secret storage",
+          "markdownDescription": "OpenSCA Xcheck 用了 VS Code 的[secret storage](https://code.visualstudio.com/api/references/vscode-api#SecretStorage)，你可以 [从OpenSCA SaaS获取token](command:opensca.getToken)，或者[点击输入token](command:opensca.setToken)",
+          "scope": "window"
+        },
+        "opensca.usingLocalDataSource": {
+          "order": 4,
+          "type": "boolean",
+          "default": false,
+          "description": "是否使用本地数据源",
+          "scope": "window"
+        },
+        "opensca.localDataSource": {
+          "type": "object",
+          "markdownDescription": "示例：\n\n```js \n {\n   \"mysql\": {\n     \"dsn\":\"user:password@tcp(ip:port)/dbname\",\n     \"table\":\"table_name\"\n   },\n   \"json\":{\n     \"dsn\":\"db.json\"\n   }\n } \n\n  ```",
+          "scope": "window"
+        },
+        "opensca.cliPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "设置 OpenSCA CLI 路径，点击 [下载/更新](command:opensca.downloadCli)",
+          "scope": "window"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "openscaViews",
+          "title": "OpenSCA Xcheck",
+          "icon": "resources/xmirror_logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "opensca.explorer.operation",
+          "name": "OpenSCA Xcheck 操作"
+        },
+        {
+          "id": "opensca.explorer.scanResults",
+          "name": "OpenSCA Xcheck 检测结果"
+        }
+      ],
+      "openscaViews": [
+        {
+          "id": "opensca.views.operation",
+          "name": "操作"
+        },
+        {
+          "id": "opensca.views.scanResults",
+          "name": "检测结果"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "opensca.setting",
+        "title": "Setting",
+        "icon": {
+          "light": "resources/light/setting.svg",
+          "dark": "resources/dark/setting.svg"
+        }
+      },
+      {
+        "command": "opensca.export",
+        "title": "Export",
+        "icon": {
+          "light": "resources/light/export.svg",
+          "dark": "resources/dark/export.svg"
+        }
+      },
+      {
+        "command": "opensca.refreshScanResult",
+        "title": "刷新结果面板"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "opensca.setting",
+          "when": "view == 'opensca.views.operation'",
+          "group": "navigation"
+        },
+        {
+          "command": "opensca.setting",
+          "when": "view == 'opensca.explorer.operation'",
+          "group": "navigation"
+        },
+        {
+          "command": "opensca.export",
+          "when": "view == 'opensca.views.scanResults'",
+          "group": "navigation"
+        },
+        {
+          "command": "opensca.export",
+          "when": "view == 'opensca.explorer.scanResults'",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "opensca.views.scanResults",
+        "contents": "没有发现扫描结果\n [运行扫描](command:opensca.scan)"
+      },
+      {
+        "view": "opensca.explorer.scanResults",
+        "contents": "没有发现扫描结果\n [运行扫描](command:opensca.scan)"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "prepare": "husky install",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/lodash": "^4.14.196",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "20.2.5",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
+    "@vscode/test-electron": "^2.3.2",
+    "eslint": "^8.47.0",
+    "eslint-plugin-n": "^16.0.1",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "glob": "^8.1.0",
+    "lint-staged": "^14.0.0",
+    "mocha": "^10.2.0",
+    "prettier": "^3.0.2",
+    "typescript": "^5.1.3",
+    "husky": "^8.0.3"
+  },
+  "dependencies": {
+    "await-to-js": "^3.0.0",
+    "axios": "^1.4.0",
+    "dayjs": "^1.11.9",
+    "lodash": "^4.17.21",
+    "open": "^7.4.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts}": [
+      "eslint --fix",
+      "git add ."
+    ]
+  }
+}

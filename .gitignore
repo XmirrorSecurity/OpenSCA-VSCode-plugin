@@ -1,0 +1,6 @@
+.history
+.cache/
+.vscode/opensca*
+node_modules/
+out/
+engine
