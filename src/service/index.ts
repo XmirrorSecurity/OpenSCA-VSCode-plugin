@@ -1,0 +1,150 @@
+import { to } from 'await-to-js';
+import axios, { AxiosResponse, CancelTokenSource } from 'axios';
+import { isObject } from 'lodash';
+import * as stream from 'stream';
+import * as vscode from 'vscode';
+import { OPENSCA_TOKEN_KEY } from '../common/commands';
+import { getArch, getPlatform } from '../common/functions';
+import Storage from '../common/storage';
+import { ResponseDataType, ResponseType } from '../common/types';
+
+export interface DownloadResponseType extends AxiosResponse {
+  data: ArrayBufferView;
+}
+
+export interface StreamAxiosResponse extends AxiosResponse {
+  data: stream.Readable;
+}
+
+export interface TokenAxiosResponse extends AxiosResponse {
+  data: TokenResponseType;
+}
+
+export interface DefaultAxiosResponse extends AxiosResponse {
+  data: VersionResponseType;
+}
+
+export interface VersionResponseType extends ResponseDataType {
+  data?: unknown;
+}
+
+interface ITokenAndCode {
+  code: number;
+  token: string | null;
+}
+export interface TokenResponseType extends ResponseDataType {
+  data?: ITokenAndCode;
+}
+
+export type DownloadAxiosResponse = { data: stream.Readable; headers: { [header: string]: unknown } };
+
+export default class Service {
+  static readonly downloadUri: string = '/oss-saas/api-v1/ide-plugin/open-sca-cli/download';
+  static readonly versionUri: string = '/oss-saas/api-v1/ide-plugin/open-sca-cli/version';
+  static readonly authTokenUri: string = '/oss-saas/api-v1/oss-token/get/auth';
+  static readonly testConnectUri: string = '/oss-saas/api-v1/oss-token/test';
+  static readonly downloadConfigUri: string = '/oss-saas/api-v1/ide-plugin/open-sca-cli/config/download';
+
+  static get confToken(): string {
+    return vscode.workspace.getConfiguration('opensca').get('remoteToken') || '';
+  }
+  static get confUrl(): string {
+    return vscode.workspace.getConfiguration('opensca').get('remoteUrl') || '';
+  }
+
+  static async getConfToken(): Promise<string | undefined> {
+    return await Storage.instance.get(OPENSCA_TOKEN_KEY);
+  }
+
+  /**
+   * 下载OpenSCA-cli
+   * @returns {[Promise<DownloadAxiosResponse>, CancelTokenSource]}
+   */
+  static downloadCli(): [Promise<DownloadAxiosResponse>, CancelTokenSource] {
+    const axiosCancelToken = axios.CancelToken.source();
+    const response = axios.get(this.confUrl + '' + this.downloadUri, {
+      params: {
+        osName: getPlatform(),
+        arch: getArch(),
+      },
+      cancelToken: axiosCancelToken.token,
+      responseType: 'stream',
+    });
+    return [response as Promise<DownloadAxiosResponse>, axiosCancelToken];
+  }
+
+  /**
+   * 下载OpenSCA-cli的默认配置文件config.json
+   * @returns {Promise<any>}
+   */
+  static async downloadConfig(): Promise<DownloadAxiosResponse> {
+    return axios.get(this.confUrl + '' + this.downloadConfigUri, {
+      responseType: 'stream',
+    });
+  }
+
+  /**
+   * 获取最新版本号
+   * @returns {Promise<any>}
+   */
+  static async lastVersion(): Promise<VersionResponseType> {
+    let err: unknown = undefined;
+    let res: ResponseType | undefined = undefined;
+    [err, res] = await to(axios.get(this.confUrl + '' + this.versionUri));
+    if (isObject(err) || (res && !res.data)) {
+      vscode.window.showWarningMessage('获取最新版本信息异常');
+      return { code: 1, data: '' };
+    }
+    return res?.data || { code: 1, data: '' };
+  }
+
+  /**
+   * 获取ossToken
+   * @returns {Promise<any>}
+   */
+  static async ossToken(tokenId: string): Promise<TokenResponseType> {
+    let err: unknown = undefined;
+    let res: TokenAxiosResponse | undefined = undefined;
+    [err, res] = await to(axios.get(this.confUrl + '' + this.authTokenUri + '/' + tokenId));
+    if (isObject(err) || (res && res?.status !== 200)) {
+      vscode.window.showWarningMessage('远程服务异常');
+      return { code: 1 };
+    }
+    return res?.data || { code: 1 };
+  }
+
+  /**
+   * 测试连接
+   * @returns {Promise<boolean>}
+   */
+  static async testConnect(): Promise<boolean> {
+    if (!this.confUrl) {
+      vscode.window.showWarningMessage('请先完善配置信息->OpenSCA 平台URL');
+      return false;
+    }
+    const confToken = await this.getConfToken();
+    if (!confToken) {
+      vscode.window.showWarningMessage('请先完善配置信息->OpenSCA 平台Token');
+      return false;
+    }
+    let err: unknown = undefined;
+    let res: DefaultAxiosResponse | undefined = undefined;
+    [err, res] = await to(
+      axios.get(this.confUrl + '' + this.testConnectUri, {
+        params: {
+          ossToken: confToken,
+        },
+      })
+    );
+    if (isObject(err) || (res && res?.status !== 200)) {
+      vscode.window.showErrorMessage('连接失败');
+      return false;
+    }
+    if (res && res.data && res.data.code !== 0) {
+      vscode.window.showErrorMessage('连接失败');
+      return false;
+    }
+    vscode.window.showInformationMessage('连接成功');
+    return true;
+  }
+}

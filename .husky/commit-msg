@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npx --no -- commitlint --edit "${1}"
+
+if [ -f .git/hooks/commit-msg ]; then
+  . ".git/hooks/commit-msg"
+fi

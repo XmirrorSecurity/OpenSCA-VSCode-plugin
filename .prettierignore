@@ -1,0 +1,4 @@
+.history
+.cache/
+node_modules/
+engine/

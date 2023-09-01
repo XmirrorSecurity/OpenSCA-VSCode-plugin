@@ -1,0 +1,10 @@
+.history
+.cache/
+.eslintrc.js
+commitlint.config.js
+node_modules
+engine/
+package.json
+package-lock.json
+docs
+.husky
