@@ -1,10 +1,12 @@
 import dayjs from 'dayjs';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 export default class Loger {
+  static homePath: string = path.join(os.homedir(), '/.vscode/OpenSCA');
   static extensionPath: string = path.join(__dirname, '../../');
-  static logDir: string = path.join(this.extensionPath, '/engine/log/');
+  static logDir: string = path.join(this.homePath, '/engine/log/');
 
   static record(text = '', type = 'info'): void {
     const logDirExists: boolean = fs.existsSync(this.logDir);

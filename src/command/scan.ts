@@ -30,6 +30,7 @@ export default class Scan extends Utils implements IScan {
    */
   start(): void {
     if (!this.scanProcessRuning) {
+      Loger.info('OpenSCA-CLI 开始运行');
       const reportExists: boolean = fs.existsSync(this.outputPath);
       if (reportExists) {
         vscode.commands.executeCommand(OPENSCA_CLEAR_SCANRESULT_COMMAND);
@@ -96,6 +97,7 @@ export default class Scan extends Utils implements IScan {
         this.scanProcess = child_process.spawn(this.customCliPath, args);
         this.scanProcessRuning = true;
         this.scanProcess.stdout?.on('data', function (data) {
+          console.log('cli:', String(data));
           if (String(data).indexOf('请求资源不存在') !== -1) {
             Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
             vscode.window.showErrorMessage('请求资源不存在，请重新设置token');

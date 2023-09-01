@@ -10,12 +10,12 @@ import { ComponentDataType, INodeIcon, ReportType, TaskInfoDataType, VulDataType
 
 export default class Utils {
   protected extensionPath: string = path.join(__dirname, '../../');
-  protected homePath: string = path.join(os.homedir(), '/OpenSCA');
-  protected outputDir: string = path.join(this.extensionPath, '/engine/data/');
-  protected logDir: string = path.join(this.extensionPath, '/engine/log/');
-  protected versionPath: string = path.join(this.extensionPath, '/engine/cli/version');
-  protected defaultConfigPath: string = path.join(this.extensionPath, '/engine/cli/config.json');
-  protected engineCliPath: string = path.join(this.extensionPath, '/engine/cli/', getEngineCliName());
+  protected homePath: string = path.join(os.homedir(), '/.vscode/OpenSCA');
+  protected outputDir: string = path.join(this.homePath, '/engine/data/');
+  protected logDir: string = path.join(this.homePath, '/engine/log/');
+  protected versionPath: string = path.join(this.homePath, '/engine/cli/version');
+  protected defaultConfigPath: string = path.join(this.homePath, '/engine/cli/config.json');
+  protected engineCliPath: string = path.join(this.homePath, '/engine/cli/', getEngineCliName());
   protected workspacePath = '';
 
   constructor() {
