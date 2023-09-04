@@ -99,11 +99,15 @@ export default class Scan extends Utils implements IScan {
         this.scanProcess.stdout?.on('data', function (data) {
           console.log('cli:', String(data));
           if (String(data).indexOf('请求资源不存在') !== -1) {
+            resolve(false);
             Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
             vscode.window.showErrorMessage('请求资源不存在，请重新设置token');
+            vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
           } else if (String(data).indexOf('OSS令牌已过期') !== -1) {
+            resolve(false);
             Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
             vscode.window.showErrorMessage('OSS令牌已过期，请重新设置token');
+            vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
           }
         });
         this.scanProcess.stderr?.on('data', function (data) {
