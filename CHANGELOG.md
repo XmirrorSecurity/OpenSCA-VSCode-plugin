@@ -1,9 +1,17 @@
-# Change Log
+# 更新记录
 
-All notable changes to the "opensca" extension will be documented in this file.
+## [1.0.3]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- 测试
 
-## [Unreleased]
+## [1.0.2]
 
-- Initial release
+- 测试
+
+## [1.0.1]
+
+- 更新 “README.md”
+
+## [1.0.0]
+
+- OpenSCA Xcheck 的 VS Code 版插件发布
