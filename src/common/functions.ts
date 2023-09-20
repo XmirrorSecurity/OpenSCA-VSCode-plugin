@@ -31,7 +31,7 @@ export function getEngineCliName(): string {
   return engineCliMap.get(platform) || 'opensca-cli';
 }
 
-export function getIdentity() {
+export function getIdentity(): string {
   const _random = (len: number): string => {
     const t = 'qwertyuiopasdfghjklzxcvbnm1234567890';
     let val = '';

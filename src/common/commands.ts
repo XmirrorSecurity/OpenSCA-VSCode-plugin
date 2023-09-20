@@ -14,7 +14,6 @@ export const OPENSCA_DOWNLOAD_CLI_COMMAND = 'opensca.downloadCli';
 export const OPENSCA_GET_TOKEN_COMMAND = 'opensca.getToken';
 export const OPENSCA_SET_TOKEN_COMMAND = 'opensca.setToken';
 export const OPENSCA_VIEWS_OPERATION_COMMAND = 'opensca.views.operation';
-export const OPENSCA_VIEWS_HELPANDFEEDBACK_COMMAND = 'opensca.views.helpAndFeedback';
 export const OPENSCA_VIEWS_SCANRESULTS_COMMAND = 'opensca.views.scanResults';
 export const OPENSCA_REFRESH_SCANRESULT_COMMAND = 'opensca.refreshScanResult';
 export const OPENSCA_REFRESH_OPERATION_COMMAND = 'opensca.refreshOperation';

@@ -136,7 +136,7 @@ export default class Scan extends Utils implements IScan {
       } catch (error) {
         this.stop();
         resolve(false);
-        Loger.error('OpenSCA-cli 运行异常:' + (error || 'error').toString());
+        Loger.error('OpenSCA-cli 运行异常:' + ((error as string) || 'error').toString());
         vscode.window.showErrorMessage('OpenSCA-cli 运行异常');
         vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
       }
