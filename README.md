@@ -8,13 +8,6 @@
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA Xcheck</h1>
 <h4 align="center">VS Code平台的OpenSCA Xcheck插件，让代码更安全</h4>
-<!-- <p align="center">
-	<a href="https://marketplace.visualstudio.com/items?itemName=xmirror.opensca"><img src="https://vsmarketplacebadges.dev/version/xmirror.opensca.svg"></a>
- 	<a href="https://marketplace.visualstudio.com/items?itemName=xmirror.opensca"><img src="https://vsmarketplacebadges.dev/downloads-short/xmirror.opensca.svg"></a>
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-VSCode-plugin/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-VSCode-plugin"></a>
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-intellij-plugin/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-intellij-plugin?style=flat-square"></a> 
-</p> -->
-
 
 
 ---
