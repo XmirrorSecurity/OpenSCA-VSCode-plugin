@@ -186,18 +186,17 @@ export default class Scan extends Utils implements IScan {
     const confJson: string = fs.readFileSync(this.defaultConfigPath, 'utf-8') || '{}';
     interface ConfType {
       path?: string;
+      token?: string;
       out?: string;
       vuln?: boolean;
       dedup?: boolean;
       progress?: boolean;
       url?: string;
-      token?: string;
       log?: string;
       origin?: any;
       maven?: any[];
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    let conf: ConfType = JSON.parse(confJson);
+    let conf: ConfType = <ConfType>JSON.parse(confJson);
     const localDataSource: object = vscode.workspace.getConfiguration('opensca').get('localDataSource') || {};
     const usingRemoteDataSource: boolean = vscode.workspace.getConfiguration('opensca').get('usingRemoteDataSource') || false;
     const usingLocalDataSource: boolean = vscode.workspace.getConfiguration('opensca').get('usingLocalDataSource') || false;

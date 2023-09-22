@@ -151,8 +151,7 @@ export default class Utils {
     } else {
       return {};
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const outputRes: ReportType = JSON.parse(outputJson);
+    const outputRes: ReportType = <ReportType>JSON.parse(outputJson);
     return outputRes.task_info;
   }
 
@@ -164,8 +163,7 @@ export default class Utils {
     } else {
       return [];
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const outputRes: ReportType = JSON.parse(outputJson);
+    const outputRes: ReportType = <ReportType>JSON.parse(outputJson);
     const list: ComponentDataType[] = outputRes.children || [];
 
     const _uniqWith = (list: ComponentDataType[]) => {

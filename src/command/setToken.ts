@@ -20,6 +20,11 @@ export default class SetToken extends Utils implements ISetToken {
   constructor() {
     super();
   }
+
+  /**
+   * 点击设置token
+   * @returns {void}
+   */
   async toSetToken(): Promise<void> {
     Loger.info('点击设置token');
     const token = await vscode.window.showInputBox({
@@ -50,6 +55,10 @@ export default class SetToken extends Utils implements ISetToken {
       });
   }
 
+  /**
+   * 点击获取token
+   * @returns {void}
+   */
   toGetToken(): void {
     if (this.vsProgress) {
       vscode.window.showWarningMessage(`正在获取token，请耐心等待`);
@@ -73,6 +82,10 @@ export default class SetToken extends Utils implements ISetToken {
     });
   }
 
+  /**
+   * 获取token
+   * @returns {void}
+   */
   private getToken(): void {
     this.vsProgress = vscode.window.withProgress(
       {
@@ -93,32 +106,48 @@ export default class SetToken extends Utils implements ISetToken {
               ),
             5000
           );
+          // 时间过长打断操作
+          setTimeout(() => {
+            if (!this.vsProgress) {
+              return;
+            }
+            reject(false);
+            this.cancel();
+            Loger.warning('token获取超时');
+            vscode.window.showWarningMessage('token获取超时', '重新获取', '取消').then(selection => {
+              if (selection === '重新获取') {
+                vscode.commands.executeCommand(OPENSCA_GET_TOKEN_COMMAND);
+              } else if (selection === '取消') {
+                Loger.warning('点击取消了重新获取token');
+              }
+            });
+          }, 1000 * 60);
         });
       }
     );
   }
 
   /**
-   * 停止检测
+   * 取消获取token
    * @returns {void}
    */
-  cancel(): void {
+  private cancel(): void {
     if (this.vsProgress) {
       this.vsProgress.then(() => {
         Loger.info('结束获取 OSS Token.');
       });
       this.vsProgress = undefined;
     }
-    this.clearInterval();
-  }
-
-  private clearInterval() {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
     }
   }
 
+  /**
+   * 从服务端自动获取token
+   * @returns {void}
+   */
   private async autoGetTokenService(resolve: { (): void }, reject: { (): void }) {
     const res: TokenResponseType = await Service.ossToken(this.tokenId);
     if (isObject(res) && res.code !== 0) {
@@ -141,7 +170,6 @@ export default class SetToken extends Utils implements ISetToken {
           vscode.commands.executeCommand(OPENSCA_GET_TOKEN_COMMAND);
         }
       });
-      this.cancel();
     }
 
     if (code !== 200) {
