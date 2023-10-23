@@ -1,12 +1,13 @@
+[![Version](https://vsmarketplacebadges.dev/version-short/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+[![Downloads](https://vsmarketplacebadges.dev/downloads-short/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+[![Rating](https://vsmarketplacebadges.dev/rating-star/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+[![License](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-VSCode-plugin)](https://github.com/XmirrorSecurity/OpenSCA-VSCode-plugin/blob/master/LICENSE)
+
 <p align="center">
 	<img alt="logo" src="https://opensca.xmirror.cn/docs/img/OpenSCAlogo.png">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA Xcheck</h1>
 <h4 align="center">VS Code平台的OpenSCA Xcheck插件，让代码更安全</h4>
-<p align="center">
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-intellij-plugin/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-intellij-plugin?style=flat-square"></a>
-	<!-- <a href="https://github.com/XmirrorSecurity/OpenSCA-intellij-plugin/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-intellij-plugin?style=flat-square"></a> -->
-</p>
 
 ---
 
@@ -16,7 +17,7 @@
 
 ## 安装插件
 
-**安装方法一**：在[适配的VS Code](https://code.visualstudio.com/)中通过应用商店安装（推荐）
+**安装方法一**：在 [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca) 中安装（推荐）
 
 在VS Code中左边栏打开扩展->扩展的搜索框中输入“OpenSCA Xcheck”，点击“Install”
 
