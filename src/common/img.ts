@@ -1,6 +1,7 @@
 import * as path from 'path';
+import { Uri } from 'vscode';
 
-const rPath = (...args: string[]): string => path.join(__filename, '..', '..', '..', 'resources', ...args);
+const rPath = (...args: string[]): Uri => path.join(__filename, '..', '..', '..', 'resources', ...args) as unknown as Uri;
 
 // 风险标识
 export const iconLevelNormal = rPath('img', 'severity_no_rating_24.svg');
@@ -26,6 +27,10 @@ export const iconDarkBtnMore = rPath('dark', 'more.svg');
 export const iconLightBtnMore = rPath('light', 'more.svg');
 export const iconLightBtnText = rPath('light', 'text.svg');
 export const iconDarkBtnText = rPath('dark', 'text.svg');
+export const iconLightArrowRight = rPath('light', 'arrow_right.svg');
+export const iconDarkArrowRight = rPath('dark', 'arrow_right.svg');
+export const iconLightProject = rPath('light', 'project.svg');
+export const iconDarkProject = rPath('dark', 'project.svg');
 
 export const iconStop = rPath('img', 'icon_stop.svg');
 export const iconRun = rPath('img', 'icon_run.svg');
@@ -90,4 +95,14 @@ export const iconPathBtnRunActive = {
 export const iconPathBtnText = {
   light: iconLightBtnText,
   dark: iconDarkBtnText,
+};
+
+export const iconPathArrowRight = {
+  light: iconLightArrowRight,
+  dark: iconDarkArrowRight,
+};
+
+export const iconPathProject = {
+  light: iconLightProject,
+  dark: iconDarkProject,
 };

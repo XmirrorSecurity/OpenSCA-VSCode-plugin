@@ -20,6 +20,7 @@ export const OPENSCA_REFRESH_OPERATION_COMMAND = 'opensca.refreshOperation';
 export const OPENSCA_CLEAR_SCANRESULT_COMMAND = 'opensca.clearScanResult';
 export const OPENSCA_EXPLORER_OPERATION_COMMAND = 'opensca.explorer.operation';
 export const OPENSCA_EXPLORER_SCANRESULTS_COMMAND = 'opensca.explorer.scanResults';
+export const OPENSCA_UPLOAD_REPORT_COMMAND = 'opensca.uploadReport';
 
 // OpenSCA 其他全局定义
 export const OPENSCA_TOKEN_KEY = 'opensca.token';

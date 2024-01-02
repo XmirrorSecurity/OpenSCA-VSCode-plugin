@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import JSON5 from 'json5';
 import path from 'path';
 import * as vscode from 'vscode';
 import { OPENSCA_CLEAR_SCANRESULT_COMMAND, OPENSCA_DOWNLOAD_CLI_COMMAND, OPENSCA_REFRESH_OPERATION_COMMAND, OPENSCA_REFRESH_SCANRESULT_COMMAND, OPENSCA_VIEW_COMMAND, WORKBENCH_ACTION_OPENSETTING } from '../common/commands';
@@ -13,6 +14,22 @@ interface IScan {
   start(): void;
   run(token: vscode.CancellationToken): Promise<boolean>;
   stop(): void;
+}
+
+interface ConfType {
+  path?: string;
+  token?: string;
+  out?: string;
+  progress?: boolean;
+  url?: string;
+  log?: string;
+  origin?: any;
+  maven?: any[];
+  optional: {
+    vuln?: boolean;
+    dedup?: boolean;
+    dev?: boolean;
+  };
 }
 
 export default class Scan extends Utils implements IScan {
@@ -31,7 +48,8 @@ export default class Scan extends Utils implements IScan {
   start(): void {
     if (!this.scanProcessRuning) {
       Loger.info('OpenSCA-CLI 开始运行');
-      const reportExists: boolean = fs.existsSync(this.outputPath);
+      Loger.info('OpenSCA-CLI 开始运行 outputPath：' + this.outputPathJson);
+      const reportExists: boolean = fs.existsSync(this.outputPathJson);
       if (reportExists) {
         vscode.commands.executeCommand(OPENSCA_CLEAR_SCANRESULT_COMMAND);
       }
@@ -64,7 +82,13 @@ export default class Scan extends Utils implements IScan {
       this.stop();
     });
 
-    const [writeConfigStatus, errMsg] = await this.writeConfig();
+    const generateDefaultConfigStatus = await this.generateDefaultConfig();
+    let [writeConfigStatus, errMsg] = [true, ''];
+
+    if (generateDefaultConfigStatus) {
+      [writeConfigStatus, errMsg] = await this.writeConfig();
+    }
+
     return new Promise((resolve, reject) => {
       const engineCliExists: boolean = fs.existsSync(this.customCliPath);
       if (!engineCliExists) {
@@ -78,7 +102,16 @@ export default class Scan extends Utils implements IScan {
 
       const identityFileExists: boolean = fs.existsSync(this.identityFilename);
       if (!identityFileExists) {
-        fs.writeFileSync(this.versionPath, getIdentity());
+        fs.writeFileSync(this.identityFilename, getIdentity());
+      }
+
+      if (!generateDefaultConfigStatus) {
+        vscode.window.showWarningMessage('默认配置文件生成失败，请尝试重新下载 OpenSCA-cli', '下载').then(selection => {
+          if (selection === '下载') {
+            vscode.commands.executeCommand(OPENSCA_DOWNLOAD_CLI_COMMAND);
+          }
+        });
+        return reject(false);
       }
 
       if (!writeConfigStatus) {
@@ -97,16 +130,16 @@ export default class Scan extends Utils implements IScan {
         this.scanProcess = child_process.spawn(this.customCliPath, args);
         this.scanProcessRuning = true;
         this.scanProcess.stdout?.on('data', function (data) {
-          console.log('cli:', String(data));
-          if (String(data).indexOf('请求资源不存在') !== -1) {
+          const spawnData = String(data);
+          if (spawnData.indexOf('请求资源不存在') !== -1) {
             resolve(false);
-            Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
+            Loger.error('OpenSCA-cli 运行异常，错误信息：' + String(data));
             vscode.window.showErrorMessage('请求资源不存在，请重新设置token');
             vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
-          } else if (String(data).indexOf('OSS令牌已过期') !== -1) {
+          } else if (spawnData.indexOf('OSS令牌已过期') !== -1 || spawnData.indexOf('OSS令牌不存在') !== -1) {
             resolve(false);
-            Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
-            vscode.window.showErrorMessage('OSS令牌已过期，请重新设置token');
+            Loger.error('OpenSCA-cli 运行异常，错误信息：' + String(data));
+            vscode.window.showErrorMessage('OSS令牌不存在或OSS令牌已过期，请重新设置token');
             vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
           }
         });
@@ -162,6 +195,73 @@ export default class Scan extends Utils implements IScan {
   }
 
   /**
+   * 运行 先用cli生成默认配置文件。再用默认配置文件和现有参数整合成新的配置文件执行cli
+   * @returns {void}
+   */
+  private async generateDefaultConfig(): Promise<boolean> {
+    const engineCliDirExists: boolean = fs.existsSync(this.engineCliDir);
+    if (!engineCliDirExists) {
+      fs.mkdirSync(this.engineCliDir, {
+        recursive: true,
+      });
+    }
+
+    const engineCliExists: boolean = fs.existsSync(this.customCliPath);
+    if (!engineCliExists) {
+      vscode.window.showWarningMessage('没有找到 OpenSCA-cli', '下载').then(selection => {
+        if (selection === '下载') {
+          vscode.commands.executeCommand(OPENSCA_DOWNLOAD_CLI_COMMAND);
+        }
+      });
+      return false;
+    }
+
+    // 默认文件已存在
+    const defaultConfigPathExists: boolean = fs.existsSync(this.defaultConfigPath);
+    if (defaultConfigPathExists) {
+      return true;
+    }
+
+    return new Promise(resolve => {
+      vscode.commands.executeCommand(OPENSCA_REFRESH_OPERATION_COMMAND);
+      try {
+        Loger.record('OpenSCA-cli 开始运行');
+        Loger.record('OpenSCA-cli 生成默认配置文件：' + this.defaultConfigPath);
+        const args = ['-config', this.defaultConfigPath];
+        const scanProcess = child_process.spawn(this.customCliPath, args);
+        scanProcess.stdout?.on('data', function (data) {
+          const spawnData = String(data);
+          if (spawnData.indexOf('请求资源不存在') !== -1) {
+            resolve(false);
+            Loger.error('OpenSCA-cli 运行异常，错误信息：' + String(data));
+          } else if (spawnData.indexOf('OSS令牌已过期') !== -1 || spawnData.indexOf('OSS令牌不存在') !== -1) {
+            resolve(false);
+            Loger.error('OpenSCA-cli 运行异常，错误信息：' + String(data));
+          }
+        });
+        scanProcess.stderr?.on('data', function (data) {
+          Loger.error('OpenSCA-cli 运行异常，错误信息：' + data);
+        });
+
+        scanProcess.on('exit', () => {
+          Loger.warning('OpenSCA-cli 退出运行');
+        });
+
+        scanProcess.on('error', code => {
+          resolve(false);
+          Loger.error('OpenSCA-cli 进程错误，code：' + code);
+        });
+        scanProcess.on('close', () => {
+          resolve(true);
+        });
+      } catch (error) {
+        resolve(false);
+        Loger.error('OpenSCA-cli 运行异常:' + ((error as string) || 'error').toString());
+      }
+    });
+  }
+
+  /**
    * 即时生成cli执行需要的配置文件
    * @returns {Promise<[boolean, string]>}
    */
@@ -184,19 +284,8 @@ export default class Scan extends Utils implements IScan {
       }
     }
     const confJson: string = fs.readFileSync(this.defaultConfigPath, 'utf-8') || '{}';
-    interface ConfType {
-      path?: string;
-      token?: string;
-      out?: string;
-      vuln?: boolean;
-      dedup?: boolean;
-      progress?: boolean;
-      url?: string;
-      log?: string;
-      origin?: any;
-      maven?: any[];
-    }
-    let conf: ConfType = <ConfType>JSON.parse(confJson);
+
+    let conf: ConfType = JSON5.parse(confJson);
     const localDataSource: object = vscode.workspace.getConfiguration('opensca').get('localDataSource') || {};
     const usingRemoteDataSource: boolean = vscode.workspace.getConfiguration('opensca').get('usingRemoteDataSource') || false;
     const usingLocalDataSource: boolean = vscode.workspace.getConfiguration('opensca').get('usingLocalDataSource') || false;
@@ -212,17 +301,22 @@ export default class Scan extends Utils implements IScan {
     conf = {
       ...conf,
       path: this.workspacePath,
-      out: this.outputPath,
-      vuln: true,
+      out: `${this.outputPathJson},${this.outputPathDsdx}`,
       log: path.join(this.logDir, './cli.log'),
+      optional: {
+        vuln: false,
+        dedup: false,
+        dev: false,
+      },
     };
 
     if (usingRemoteDataSource) {
       conf = {
         ...conf,
-        url: this.confUrl,
-        token: confToken,
-        origin: {},
+        origin: {
+          url: this.confUrl,
+          token: confToken,
+        },
       };
     }
     if (usingLocalDataSource) {
@@ -234,7 +328,7 @@ export default class Scan extends Utils implements IScan {
       };
     }
     fs.writeFileSync(this.configPath, JSON.stringify(conf));
-
+    Loger.error(JSON.stringify(conf));
     return [true, 'SUCCESS'];
   }
 

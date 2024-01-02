@@ -40,7 +40,7 @@ export default class Webview {
         switch (command) {
           case 'file':
             text &&
-              vscode.workspace.openTextDocument(text).then(document => {
+              vscode.workspace.openTextDocument(((text || '') as any as string).split('====').join('\\')).then(document => {
                 vscode.window.showTextDocument(document);
               });
             return;
@@ -285,7 +285,7 @@ export default class Webview {
             document.getElementById('btn_location').addEventListener('click', function () {
               vscode.postMessage({
                 command: 'file',
-                text: '${baseData?.completeLocation || ''}'
+                text: '${baseData?.completeLocation ? baseData?.completeLocation.split('\\').join('====') : ''}'
               });
             })
         }())

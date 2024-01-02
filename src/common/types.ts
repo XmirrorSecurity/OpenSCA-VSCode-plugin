@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import { Uri } from 'vscode';
 interface ComponentTotalType {
   serious: number;
   high: number;
@@ -62,8 +63,8 @@ export interface VulDataType {
 }
 
 export type INodeIcon = {
-  ['light']: string;
-  ['dark']: string;
+  ['light']: Uri;
+  ['dark']: Uri;
 };
 
 export interface ResponseDataType {

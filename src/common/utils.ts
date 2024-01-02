@@ -13,8 +13,9 @@ export default class Utils {
   protected homePath: string = path.join(os.homedir(), '/.vscode/OpenSCA');
   protected outputDir: string = path.join(this.homePath, '/engine/data/');
   protected logDir: string = path.join(this.homePath, '/engine/log/');
-  protected versionPath: string = path.join(this.homePath, '/engine/cli/version');
+  // protected versionPath: string = path.join(this.homePath, '/engine/cli/version');
   protected defaultConfigPath: string = path.join(this.homePath, '/engine/cli/config.json');
+  protected engineCliDir: string = path.join(this.homePath, '/engine/cli/');
   protected engineCliPath: string = path.join(this.homePath, '/engine/cli/', getEngineCliName());
   protected workspacePath = '';
 
@@ -28,7 +29,11 @@ export default class Utils {
   }
 
   get confUrl(): string {
-    return trim(vscode.workspace.getConfiguration('opensca').get('remoteUrl')) || 'https://opensca.xmirror.cn';
+    return trim(vscode.workspace.getConfiguration('opensca').get('remoteUrl')) || this.serverUrl;
+  }
+
+  get serverUrl(): string {
+    return 'https://opensca.xmirror.cn';
   }
 
   get identityFilename(): string {
@@ -51,7 +56,15 @@ export default class Utils {
     } else {
       identity = fs.readFileSync(this.identityFilename, 'utf-8');
     }
-    return path.join(this.outputDir, identity + '.json');
+    return path.join(this.outputDir, identity);
+  }
+
+  get outputPathJson(): string {
+    return this.outputPath + '.json';
+  }
+
+  get outputPathDsdx(): string {
+    return this.outputPath + '.dsdx';
   }
 
   async getConfToken(): Promise<string | undefined> {
@@ -112,7 +125,8 @@ export default class Utils {
 
     list.forEach(item => {
       const path = item.paths[0];
-      const itemPath = path.slice(0, path.indexOf('/[')).replace(this.workspacePath.replace(/\\/g, '/'), '');
+      // const itemPath = path.slice(0, path.indexOf('/[')).replace(this.workspacePath.replace(/\\/g, '/'), '');
+      const itemPath = path.slice(0, path.indexOf('\\['));
       if (pathList.indexOf(itemPath) === -1) {
         pathList.push(itemPath);
       }
@@ -145,9 +159,9 @@ export default class Utils {
 
   getScanTaskInfo(): TaskInfoDataType {
     let outputJson = '';
-    const outputJsonExists = fs.existsSync(this.outputPath);
+    const outputJsonExists = fs.existsSync(this.outputPathJson);
     if (outputJsonExists) {
-      outputJson = fs.readFileSync(this.outputPath, 'utf-8');
+      outputJson = fs.readFileSync(this.outputPathJson, 'utf-8');
     } else {
       return {};
     }
@@ -157,14 +171,30 @@ export default class Utils {
 
   getScanList(): ComponentDataType[] | [] {
     let outputJson = '';
-    const outputJsonExists = fs.existsSync(this.outputPath);
+    const outputJsonExists = fs.existsSync(this.outputPathJson);
     if (outputJsonExists) {
-      outputJson = fs.readFileSync(this.outputPath, 'utf-8');
+      outputJson = fs.readFileSync(this.outputPathJson, 'utf-8');
     } else {
       return [];
     }
     const outputRes: ReportType = <ReportType>JSON.parse(outputJson);
-    const list: ComponentDataType[] = outputRes.children || [];
+    const list: ComponentDataType[] = [];
+
+    const _forEachChildren = (childrenItem: ComponentDataType) => {
+      if (childrenItem.vulnerabilities) {
+        list.push(childrenItem);
+      }
+
+      if (childrenItem.children) {
+        (childrenItem.children || []).forEach(item => {
+          _forEachChildren(item);
+        });
+      }
+    };
+
+    (outputRes.children || []).forEach(item => {
+      _forEachChildren(item);
+    });
 
     const _uniqWith = (list: ComponentDataType[]) => {
       return uniqWith(list, (a, b) => isEqual({ name: a.name, version: a.version, language: a.language }, { name: b.name, version: b.version, language: b.language }));
@@ -173,9 +203,9 @@ export default class Utils {
     const newList = _uniqWith(list);
     return newList.map(item => {
       const completePath = item.paths[0];
-      const completeLocation = completePath.slice(0, completePath.indexOf('/['));
+      const completeLocation = completePath.slice(0, completePath.indexOf('\\['));
       const location = completeLocation.replace(this.workspacePath.replace(/\\/g, '/'), '');
-      const componentPath = completePath.slice(completePath.indexOf('/[') + 1).replace(/\/\[/g, '->[');
+      const componentPath = completePath.slice(completePath.indexOf('\\[') + 1).replace(/\\\[/g, '->[');
       const vulList = (item.vulnerabilities || []).sort((a: VulDataType, b: VulDataType) => a.security_level_id - b.security_level_id);
       if (vulList.length) {
         item.security_level_id = vulList[0].security_level_id;
@@ -190,7 +220,7 @@ export default class Utils {
         ...item,
         licenseStr: (item.licenses || []).map((itemLicense: ItemLicense) => itemLicense.name).join(','),
         vulnerabilities: (item.vulnerabilities || []).map(item => ({ ...item, cve_id: item.cve_id || '', cnnvd_id: item.cnnvd_id || '' })),
-        completeLocation,
+        completeLocation: this.workspacePath + '' + completeLocation.slice(completePath.indexOf('\\')),
         completePath,
         componentPath,
         location,
