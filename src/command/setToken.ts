@@ -65,7 +65,7 @@ export default class SetToken extends Utils implements ISetToken {
       return;
     }
     this.tokenId = 'opensca_' + new Date().getTime();
-    const skipUrl = `${this.confUrl}/auth?tokenid=${this.tokenId}&from=vscode`;
+    const skipUrl = `${this.serverUrl}/auth?tokenid=${this.tokenId}&from=vscode`;
     vscode.window.showInformationMessage('正在尝试打开默认浏览器跳转到opensca.xmirror.cn获取token', '继续', '复制跳转链接', '取消').then(selection => {
       if (selection === '继续') {
         open(skipUrl);

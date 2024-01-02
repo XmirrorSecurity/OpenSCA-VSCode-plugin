@@ -1,4 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
+import * as child_process from 'child_process';
 import * as fs from 'fs';
 import { isObject } from 'lodash';
 import * as stream from 'stream';
@@ -8,7 +9,6 @@ import Loger from '../common/loger';
 import { ResponseDataType } from '../common/types';
 import Utils from '../common/utils';
 import Service, { DownloadAxiosResponse } from '../service';
-
 interface IDownloadCli {
   init(): Promise<void>;
 }
@@ -29,15 +29,36 @@ export default class DownloadCli extends Utils implements IDownloadCli {
    * @returns {any}
    */
   private async needUpdateEngine(): Promise<any> {
-    let currVersion = '';
-    const versionPathExists: boolean = fs.existsSync(this.versionPath);
-    if (versionPathExists) {
-      currVersion = fs.readFileSync(this.versionPath, 'utf-8');
-    } else {
-      fs.mkdirSync(this.versionPath.replace('version', ''), {
+    const engineCliDirExists: boolean = fs.existsSync(this.engineCliDir);
+    if (!engineCliDirExists) {
+      fs.mkdirSync(this.engineCliDir, {
         recursive: true,
       });
-      fs.writeFileSync(this.versionPath, 'OpenSCA');
+    }
+
+    let currVersion = '';
+    const engineCliExists: boolean = fs.existsSync(this.customCliPath);
+    if (!engineCliExists) {
+      currVersion = '';
+    } else {
+      currVersion = await new Promise(resolve => {
+        try {
+          const args = ['-version'];
+          const scanProcess = child_process.spawn(this.customCliPath, args);
+          scanProcess.stdout?.on('data', function (data) {
+            if (String(data).startsWith('v')) {
+              resolve(String(data));
+            } else {
+              resolve('');
+            }
+          });
+          scanProcess.on('error', () => {
+            resolve('');
+          });
+        } catch (error) {
+          resolve('');
+        }
+      });
     }
 
     if (!getPlatform() || !getArch()) {
@@ -54,7 +75,6 @@ export default class DownloadCli extends Utils implements IDownloadCli {
     }
 
     const lastVersion: string = String(lastVersionRes.data) || '';
-    fs.writeFileSync(this.versionPath, lastVersion);
     if (lastVersion === currVersion) {
       vscode.window.showInformationMessage('当前OpenSCA-cli是最新版本，不需要更新', '继续更新').then(selection => {
         if (selection === '继续更新') {
@@ -68,32 +88,10 @@ export default class DownloadCli extends Utils implements IDownloadCli {
   }
 
   /**
-   * 下载cli 默认配置文件
-   * @returns {Promise}
-   */
-  private downloadDefaultConf(): Promise<boolean> {
-    return Service.downloadConfig()
-      .then(response => {
-        response.data.pipe(fs.createWriteStream(this.defaultConfigPath));
-        return true;
-      })
-      .catch(() => {
-        return false;
-      });
-  }
-
-  /**
    * 下载cli
    * @returns {Promise}
    */
   private async downloadEngine(): Promise<any> {
-    const downloadConfigSuccess = await this.downloadDefaultConf();
-    if (!downloadConfigSuccess) {
-      vscode.window.showErrorMessage('OpenSCA-cli 下载失败');
-      Loger.error('OpenSCA-cli 默认配置文件下载失败');
-      return Promise.resolve({ status: false });
-    }
-
     return (this.vsProgress = vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -122,6 +120,7 @@ export default class DownloadCli extends Utils implements IDownloadCli {
    */
   private async doDownload(requestToken: CancelTokenSource, token: vscode.CancellationToken, request: Promise<DownloadAxiosResponse>, progress: vscode.Progress<{ message?: string; increment?: number }>): Promise<boolean> {
     token.onCancellationRequested(() => {
+      this.vsProgress = undefined;
       Loger.warning('点击取消下载 OpenSCA-cli');
       requestToken.cancel();
     });
@@ -149,6 +148,7 @@ export default class DownloadCli extends Utils implements IDownloadCli {
       return new Promise((resolve, reject) => {
         data.on('end', () => {
           stream.finished(writer, err => {
+            this.vsProgress = undefined;
             if (err) {
               reject(err);
             } else {

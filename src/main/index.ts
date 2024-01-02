@@ -6,6 +6,7 @@ import Scan from '../command/scan';
 import SetToken from '../command/setToken';
 import Setting from '../command/setting';
 import TestConf from '../command/testConf';
+import UploadReport from '../command/uploadReport';
 import {
   OPENSCA_CLEAR_SCANRESULT_COMMAND,
   OPENSCA_DOWNLOAD_CLI_COMMAND,
@@ -21,6 +22,7 @@ import {
   OPENSCA_SET_TOKEN_COMMAND,
   OPENSCA_STOP_COMMAND,
   OPENSCA_TESTCONF_COMMAND,
+  OPENSCA_UPLOAD_REPORT_COMMAND,
   OPENSCA_VIEWS_OPERATION_COMMAND,
   OPENSCA_VIEWS_SCANRESULTS_COMMAND,
   OPENSCA_VIEW_COMMAND,
@@ -43,6 +45,7 @@ const openDoc = new OpenDoc();
 const exportReport = new ExportReport();
 const operationProvider = new OperationProvider(rootPath, scan);
 const resultProvider = new ResultProvider(rootPath);
+const uploadReport = new UploadReport();
 
 export default class OpenscaExtension {
   context!: vscode.ExtensionContext;
@@ -69,8 +72,9 @@ export default class OpenscaExtension {
     const doExportReport = vscode.commands.registerCommand(OPENSCA_EXPORT, () => exportReport.init());
     const registerSetting = vscode.commands.registerCommand(OPENSCA_SETTING_COMMAND, () => setting.init());
     const registerWebview = vscode.commands.registerCommand(OPENSCA_VIEW_COMMAND, (target: string, baseData: BaseDataType | null) => webview.init(context, target, baseData));
+    const doUploadReport = vscode.commands.registerCommand(OPENSCA_UPLOAD_REPORT_COMMAND, () => uploadReport.init());
 
-    context.subscriptions.push(doGetToken, doSetToken, doDownloadCli, doStartScan, doStopScan, doTestConf, doRefreshResults, doRefreshOperation, doClearResult, doOpenDoc, doExportReport, registerSetting, registerWebview);
+    context.subscriptions.push(doGetToken, doSetToken, doDownloadCli, doStartScan, doStopScan, doTestConf, doRefreshResults, doRefreshOperation, doClearResult, doOpenDoc, doExportReport, registerSetting, registerWebview, doUploadReport);
   }
 
   private registerTreeDataProviders(context: vscode.ExtensionContext): void {

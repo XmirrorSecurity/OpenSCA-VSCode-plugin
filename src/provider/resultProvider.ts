@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { OPENSCA_REFRESH_SCANRESULT_COMMAND, OPENSCA_VIEW_COMMAND } from '../common/commands';
 import { iconPathBtnText, iconPathLevelHigh, iconPathLevelLow, iconPathLevelMedium, iconPathLevelNormal, iconPathLevelSerious } from '../common/img';
+import Loger from '../common/loger';
 import { ComponentDataType, INodeIcon, VulDataType } from '../common/types';
 import Utils, { TreeItem } from '../common/utils';
 
@@ -18,12 +19,12 @@ export class ResultProvider extends Utils implements vscode.TreeDataProvider<Tre
   }
 
   clear(): void {
-    const reportExists: boolean = fs.existsSync(this.outputPath);
+    const reportExists: boolean = fs.existsSync(this.outputPathJson);
     if (reportExists) {
-      fs.unlink(this.outputPath, function (err) {
+      fs.unlink(this.outputPathJson, function (err) {
         if (err) {
           vscode.window.showErrorMessage('清除检测结果异常');
-          return console.error(err);
+          return Loger.error(`在读取文件时发生错误: ${err}`);
         }
         vscode.window.showInformationMessage('已经清除当前项目的检测结果');
         vscode.commands.executeCommand(OPENSCA_REFRESH_SCANRESULT_COMMAND);
