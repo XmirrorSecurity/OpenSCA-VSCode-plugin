@@ -12,6 +12,12 @@ export default class Webview {
 
   init(context: vscode.ExtensionContext, target: string, baseData: BaseDataType | null) {
     this.context = context;
+    const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
+
+    if (this.panel) {
+      this.panel.reveal(columnToShowIn);
+    }
+
     if (!this.panel) {
       this.panel = vscode.window.createWebviewPanel('openscaView', 'OpenSCA Xcheck', vscode.ViewColumn.Beside, {
         enableScripts: true,
@@ -350,9 +356,9 @@ export default class Webview {
         <div>
           <span class="txt-label"><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=${!baseData ? '' : baseData.cve_id}" target="_blank">${!baseData ? '-' : baseData.cve_id || '-'}</a></span>
           <span class="txt-label">|</span>
-          <span class="txt-label"><a href="http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=${!baseData ? '' : baseData.cnnvd_id}" target="_blank">${!baseData ? '-' : baseData.cnnvd_id || '-'}</a></span>
+          <span class="txt-label">${!baseData ? '-' : baseData.cnnvd_id || '-'}</span>
           <span class="txt-label">|</span>
-          <span class="txt-label">${!baseData ? '??' : baseData.id}</span>
+          <span class="txt-label">${!baseData ? '-' : baseData.id}</span>
         </div>
         <div>
           <span class="txt-label">发布日期：</span>

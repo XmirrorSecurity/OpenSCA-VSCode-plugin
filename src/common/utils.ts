@@ -13,7 +13,6 @@ export default class Utils {
   protected homePath: string = path.join(os.homedir(), '/.vscode/OpenSCA');
   protected outputDir: string = path.join(this.homePath, '/engine/data/');
   protected logDir: string = path.join(this.homePath, '/engine/log/');
-  // protected versionPath: string = path.join(this.homePath, '/engine/cli/version');
   protected defaultConfigPath: string = path.join(this.homePath, '/engine/cli/config.json');
   protected engineCliDir: string = path.join(this.homePath, '/engine/cli/');
   protected engineCliPath: string = path.join(this.homePath, '/engine/cli/', getEngineCliName());
