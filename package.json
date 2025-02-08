@@ -3,7 +3,7 @@
   "displayName": "OpenSCA Xcheck",
   "publisher": "Xmirror",
   "description": "OpenSCA Xcheck",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "icon": "resources/xmirror_logo.png",
   "homepage": "https://opensca.xmirror.cn",
   "repository": {

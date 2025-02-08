@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { BaseDataType, ComponentDataType, ProjectDataType, VulDataType } from '../common/types';
 
@@ -43,10 +44,11 @@ export default class Webview {
     this.panel.webview.onDidReceiveMessage(
       (message: MessageType) => {
         const { command, text } = message;
+        const splitSep = path.sep;
         switch (command) {
           case 'file':
             text &&
-              vscode.workspace.openTextDocument(((text || '') as any as string).split('====').join('\\')).then(document => {
+              vscode.workspace.openTextDocument(((text || '') as any as string).split('====').join(splitSep)).then(document => {
                 vscode.window.showTextDocument(document);
               });
             return;
@@ -206,6 +208,7 @@ export default class Webview {
    * @returns {any}
    */
   getComponentWebviewContent(baseData: null | ComponentDataType = null) {
+    const splitSep = path.sep;
     if (!!baseData && baseData.paths && baseData.paths.length) {
       baseData.path_str = baseData.paths.map(item => `<p>* ${item}</p>`).join('');
     }
@@ -291,7 +294,7 @@ export default class Webview {
             document.getElementById('btn_location').addEventListener('click', function () {
               vscode.postMessage({
                 command: 'file',
-                text: '${baseData?.completeLocation ? baseData?.completeLocation.split('\\').join('====') : ''}'
+                text: '${baseData?.completeLocation ? baseData?.completeLocation.split(splitSep).join('====') : ''}'
               });
             })
         }())

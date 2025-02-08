@@ -30,7 +30,7 @@ import {
 
 import Storage from '../common/storage';
 import { BaseDataType } from '../common/types';
-import { OperationProvider } from '../provider/operationProvider';
+import { OperationProvider } from '../provider/OperationProvider';
 import { ResultProvider } from '../provider/resultProvider';
 import Webview from '../webview';
 

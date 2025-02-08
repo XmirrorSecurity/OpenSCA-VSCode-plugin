@@ -121,11 +121,10 @@ export default class Utils {
   getScanPaths(): string[] {
     const list: ComponentDataType[] = this.getScanList();
     const pathList: string[] = [];
-
+    const splitSep = path.sep;
     list.forEach(item => {
       const path = item.paths[0];
-      // const itemPath = path.slice(0, path.indexOf('/[')).replace(this.workspacePath.replace(/\\/g, '/'), '');
-      const itemPath = path.slice(0, path.indexOf('\\['));
+      const itemPath = path.slice(0, path.indexOf(splitSep + '['));
       if (pathList.indexOf(itemPath) === -1) {
         pathList.push(itemPath);
       }
@@ -200,11 +199,12 @@ export default class Utils {
     };
 
     const newList = _uniqWith(list);
+    const splitSep = path.sep;
     return newList.map(item => {
       const completePath = item.paths[0];
-      const completeLocation = completePath.slice(0, completePath.indexOf('\\['));
-      const location = completeLocation.replace(this.workspacePath.replace(/\\/g, '/'), '');
-      const componentPath = completePath.slice(completePath.indexOf('\\[') + 1).replace(/\\\[/g, '->[');
+      const completeLocation = completePath.slice(0, completePath.indexOf(splitSep + '['));
+      const location = completeLocation.replace(this.workspacePath.replace(new RegExp(splitSep, 'g'), '/'), '');
+      const componentPath = completePath.slice(completePath.indexOf(splitSep + '[') + 1).replace(new RegExp(splitSep, 'g'), '->');
       const vulList = (item.vulnerabilities || []).sort((a: VulDataType, b: VulDataType) => a.security_level_id - b.security_level_id);
       if (vulList.length) {
         item.security_level_id = vulList[0].security_level_id;
@@ -219,7 +219,7 @@ export default class Utils {
         ...item,
         licenseStr: (item.licenses || []).map((itemLicense: ItemLicense) => itemLicense.name).join(','),
         vulnerabilities: (item.vulnerabilities || []).map(item => ({ ...item, cve_id: item.cve_id || '', cnnvd_id: item.cnnvd_id || '' })),
-        completeLocation: this.workspacePath + '' + completeLocation.slice(completePath.indexOf('\\')),
+        completeLocation: path.join(this.workspacePath, '../' + completeLocation),
         completePath,
         componentPath,
         location,
